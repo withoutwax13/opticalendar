@@ -50,14 +50,16 @@ const App = (props) => {
 
     // Syncing strategy:
     // 1. If the changeLogs length is not equal to the previousChangeLogLength and the changeLogs length is divisible by 3, then sync the changes to the server.
-    // 2. In case the user closed the browser before the changes were synced, the changes will be synced when the user loads the app again. 
+    // 2. In case the user closed the browser before the changes were synced, the changes will be synced when the user loads the app again.
     //    This will be implemented by checking if the changeLogs has items, since each syncing will clear the changeLogs.
 
-    if (
-      (previousChangeLogLength === -1 && changeLogs.length > 0) ||
-      (changeLogs.length !== previousChangeLogLength &&
-        changeLogs.length % 3 === 0)
-    ) {
+    const isAppJustLoaded =
+        previousChangeLogLength === -1 && changeLogs.length > 0,
+      isIncrementalConditionTrue =
+        changeLogs.length !== previousChangeLogLength &&
+        changeLogs.length % 3 === 0;
+
+    if (isAppJustLoaded || isIncrementalConditionTrue) {
       setIsLoading(true);
       changeLogs.forEach((changeLog) => {
         handleServerSync(changeLog).catch((error) => {
