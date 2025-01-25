@@ -3,17 +3,22 @@ import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import supabase from "../../services/supabaseClient";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "@/store/reducers/userInfoReducers";
+import storeProvider from "@/components/StoreProvider";
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const dispatch = useDispatch();
+  const userInfo = useSelector((state) => state.userInfo);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -23,8 +28,12 @@ const LoginPage: React.FC = () => {
       toast.error(error.message);
     } else {
       toast.success("Login successful!");
-      // Redirect to /app-demo
-      window.location.href = "/app-demo";
+      dispatch(login(data.user));
+      if (userInfo) {
+        setTimeout(() => {
+          window.location.href = "/app";
+        }, 2000);
+      }
     }
   };
 
@@ -73,4 +82,4 @@ const LoginPage: React.FC = () => {
   );
 };
 
-export default LoginPage;
+export default storeProvider(LoginPage);
