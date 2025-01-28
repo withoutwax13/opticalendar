@@ -7,6 +7,7 @@ import { logout } from "@/store/reducers/userInfoReducers";
 import { useDispatch, useSelector } from "react-redux";
 import { persistor } from "@/store/store";
 import { handleServerSync } from "@/utils";
+import { addClientSchedule } from "@/store/reducers/clientSchedulesReducer";
 
 const Header = (props) => {
   const { user, setOfflineInsertList } = props;
@@ -45,7 +46,16 @@ const Header = (props) => {
       }
     }
   };
-  const setEvents = () => {}; // dummy function
+
+  const handleAddevent = (id, event) => {
+    dispatch(
+      addClientSchedule({
+        id: id,
+        schedule_data: event,
+      })
+    );
+  };
+
   return (
     <div>
       <div className="modal">
@@ -53,7 +63,7 @@ const Header = (props) => {
           modalType="add"
           closeModal={closeModal}
           modalIsOpen={modalIsOpen}
-          addEvent={setEvents}
+          addEvent={handleAddevent}
           setOfflineInsertList={setOfflineInsertList}
         />
       </div>

@@ -20,6 +20,21 @@ const MainCalendar = (props) => {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
   const dispatch = useDispatch();
 
+  const handleUpdateEvent = (newData) => {
+    const event = {
+      ...selectedEvent,
+    };
+    dispatch(
+      editClientSchedule({
+        id: event.id,
+        newScheduleData: newData,
+      })
+    );
+  };
+  useEffect(() => {
+    console.log("selected event: ", selectedEvent);
+  }, [selectedEvent]);
+
   const onEventResize = ({
     event,
     start,
@@ -111,7 +126,7 @@ const MainCalendar = (props) => {
           modalIsOpen={modalIsOpen}
           closeModal={closeModal}
           selectedEvent={selectedEvent}
-          editSelectedEvent={editClientSchedule}
+          editSelectedEvent={handleUpdateEvent}
           modalType={"edit"}
         />
       </div>

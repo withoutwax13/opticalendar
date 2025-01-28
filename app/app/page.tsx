@@ -6,6 +6,7 @@ import {
   clearChangeLog,
   getScheduleToClient,
 } from "@/store/reducers/clientSchedulesReducer";
+
 import Header from "@/components/Header";
 import MainCalendar from "@/components/MainCalendar";
 import { toast, ToastContainer } from "react-toastify";
@@ -38,6 +39,16 @@ const App = (props) => {
       }
     };
 
+    // Syncing strategy:
+    // 1. Sync changes to the server if the changeLogs length is different from the previousChangeLogLength and is divisible by 3.
+    // 2. If the user closed the browser before syncing, sync the changes when the app loads again by checking if changeLogs has items.
+
+    const isReloadedWithoutLogout =
+        previousChangeLogLength === -1 && changeLogs.length > 0,
+      isIncrementalConditionTrue =
+        changeLogs.length !== previousChangeLogLength &&
+        changeLogs.length % 3 === 0;
+
     if (rehydrated) {
       if (!userInfo) {
         window.location.href = "/login";
@@ -48,35 +59,29 @@ const App = (props) => {
       }
     }
 
-    // Syncing strategy:
-    // 1. If the changeLogs length is not equal to the previousChangeLogLength and the changeLogs length is divisible by 3, then sync the changes to the server.
-    // 2. In case the user closed the browser before the changes were synced, the changes will be synced when the user loads the app again.
-    //    This will be implemented by checking if the changeLogs has items, since each syncing will clear the changeLogs.
-
-    const isAppJustLoaded =
-        previousChangeLogLength === -1 && changeLogs.length > 0,
-      isIncrementalConditionTrue =
-        changeLogs.length !== previousChangeLogLength &&
-        changeLogs.length % 3 === 0;
-
-    if (isAppJustLoaded || isIncrementalConditionTrue) {
+    if (isReloadedWithoutLogout || isIncrementalConditionTrue) {
       setIsLoading(true);
-      changeLogs.forEach((changeLog) => {
-        handleServerSync(changeLog).catch((error) => {
-          toast.error("Server sync failed");
-          setIsLoading(false);
+      try {
+        changeLogs.forEach((changeLog) => {
+          handleServerSync(changeLog).catch((error) => {
+            toast.error("Server sync failed");
+            setIsLoading(false);
+          });
         });
-      });
-      setIsLoading(false);
-      dispatch(clearChangeLog());
-      setPreviousChangeLogLength(changeLogs.length);
-      console.log(`Successfully synced ${changeLogs.length} changes!`);
+      } catch (error: any) {
+        toast.error("Server sync failed");
+        setIsLoading(false);
+      } finally {
+        dispatch(clearChangeLog());
+        setPreviousChangeLogLength(changeLogs.length);
+        setIsLoading(false);
+      }
     }
-    console.log("changeLogs", changeLogs);
   }, [
     rehydrated,
     userInfo,
     clientSchedules,
+    clientSchedules.length,
     changeLogs,
     changeLogs.length,
     previousChangeLogLength,

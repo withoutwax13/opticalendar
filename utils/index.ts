@@ -1,16 +1,17 @@
-import supabase from "@/services/supabaseClient";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 interface ScheduleData {
   type: string;
   id: number;
-  newScheduleData: any; // Replace 'any' with the appropriate type if known
+  newScheduleData?: any; // Optional: only for edit and add type
+  deleteType?: string; // Optional: only for delete type
 }
 
 export const handleServerSync = async ({
   type,
   id,
   newScheduleData,
+  deleteType,
 }: ScheduleData) => {
   switch (type) {
     case "edit":
@@ -19,14 +20,29 @@ export const handleServerSync = async ({
         schedule_data: newScheduleData,
       });
     case "add":
-      return await axios.post(`/api/schedule`, {
-        id: uuidv4(),
-        user_id: supabase.auth.user()?.id,
-        schedule_data: newScheduleData,
-      });
+      return await axios.post(
+        `/api/schedule`,
+        {
+          id: uuidv4(),
+          user_id: newScheduleData.user_id || id,
+          schedule_data: newScheduleData,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
     case "delete":
-      return await axios.delete(`/api/schedule`, {
-        data: { id },
-      });
+      console.log("deleteType: ", deleteType);
+      console.log("id: ", id);
+      switch (deleteType) {
+        case "single":
+          return await axios.delete(`/api/schedule/?id=${id}&deleteType=single`);
+        case "group": // delete whole group of recurring schedules
+          return await axios.delete(`/api/schedule/?id=${id}&deleteType=group`);
+        default:
+          return;
+      }
   }
 };

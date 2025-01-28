@@ -36,7 +36,7 @@ const clientScheduleSlice = createSlice({
         newScheduleData,
       });
     },
-    addClientSchedule: (state) => {
+    addClientSchedule: (state, action) => {
       state.scheduleData.push(action.payload);
       state.changeLog.push({
         type: "add",
@@ -44,14 +44,31 @@ const clientScheduleSlice = createSlice({
         newScheduleData: action.payload.schedule_data,
       });
     },
-    deleteClientSchedule: (state) => {
-      const { id } = action.payload;
-      state.scheduleData = state.scheduleData.filter(
-        (schedule) => schedule.id !== id
-      );
+    deleteClientSchedule: (state, action) => {
+      const { id, deleteType } = action.payload;
+      if (state.scheduleData) {
+        if (deleteType === "single") {
+          const index = state.scheduleData.findIndex(
+            (schedule: any) => schedule.id === id
+          );
+          if (index !== -1) {
+            state.scheduleData.splice(index, 1);
+          }
+        } else if (deleteType === "group") {
+          const indexesToDelete = state.scheduleData.findIndex(
+            (schedule: any) => schedule.recurringGroupId === id
+          );
+          if (indexesToDelete.length > 0) {
+            indexesToDelete.forEach((index: number) => {
+              state.scheduleData.splice(index, 1);
+            });
+          }
+        }
+      }
       state.changeLog.push({
         type: "delete",
         id,
+        deleteType,
       });
     },
     clearChangeLog: (state) => {
