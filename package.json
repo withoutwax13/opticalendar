@@ -24,9 +24,7 @@
     "redux": "^5.0.1",
     "redux-persist": "^6.0.0",
     "redux-thunk": "^3.1.0",
-    "uuid": "^11.0.5"
-  },
-  "devDependencies": {
+    "uuid": "^11.0.5",
     "@eslint/eslintrc": "^3",
     "@types/node": "^20",
     "@types/react": "^19",
