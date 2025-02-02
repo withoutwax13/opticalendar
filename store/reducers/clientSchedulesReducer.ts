@@ -1,6 +1,8 @@
 import axios from "axios";
 import { createSlice } from "@reduxjs/toolkit";
 import { createAsyncThunk } from "@reduxjs/toolkit";
+import { ChangeLogType } from "@/types";
+import { v4 as uuidv4 } from "uuid";
 
 export const getScheduleToClient = createAsyncThunk(
   "schedules/getScheduleToClient",
@@ -33,6 +35,7 @@ const clientScheduleSlice = createSlice({
       state.changeLog.push({
         type: "edit",
         id,
+        logId: uuidv4(),
         newScheduleData,
       });
     },
@@ -42,6 +45,7 @@ const clientScheduleSlice = createSlice({
         type: "add",
         id: action.payload.id,
         newScheduleData: action.payload.schedule_data,
+        logId: uuidv4(),
       });
     },
     deleteClientSchedule: (state, action) => {
@@ -65,11 +69,33 @@ const clientScheduleSlice = createSlice({
           }
         }
       }
-      state.changeLog.push({
-        type: "delete",
-        id,
-        deleteType,
-      });
+      // check first if the id is already in the changeLog
+      // if it is, system must not this delete type if the same id
+      // and also delete the add/edit type of the same id
+      const hasSameId = state.changeLog.some(
+        (changeLog: ChangeLogType) =>
+          changeLog.id === id && changeLog.type !== "delete"
+      );
+      if (hasSameId) {
+        console.log("hasSameId: ", hasSameId);
+        console.log(
+          "hasSameId: ",
+          state.changeLog.find(
+            (changeLog: ChangeLogType) => changeLog.id === id
+          )
+        );
+        state.changeLog = state.changeLog.filter(
+          (changeLog: ChangeLogType) => changeLog.id !== id
+        );
+        console.log("new changeLog: ", state.changeLog);
+      } else {
+        state.changeLog.push({
+          type: "delete",
+          id,
+          logId: uuidv4(),
+          deleteType,
+        });
+      }
     },
     clearChangeLog: (state) => {
       state.changeLog = [];

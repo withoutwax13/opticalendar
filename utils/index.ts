@@ -1,11 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-interface ScheduleData {
-  type: string;
-  id: number;
-  newScheduleData?: any; // Optional: only for edit and add type
-  deleteType?: string; // Optional: only for delete type
-}
+import { ScheduleData } from "../types";
+
 
 export const handleServerSync = async ({
   type,
